@@ -8,24 +8,17 @@ QT       += core network
 
 QT       -= gui
 QMAKE_CXXFLAGS += -std=c++11
-TARGET = console-client
+TARGET = Jarvis-console
 CONFIG   += console
 CONFIG   -= app_bundle
 
 TEMPLATE = app
-
+INCLUDEPATH += ../Frontend
+LIBS += -L../Frontend/debug/ -lJarvis-Frontend
 
 SOURCES += main.cpp \
-    ../JarvisClient.cpp \
     TerminalPrinter.cpp \
-    ../Scope.cpp \
-    ../ModulePackage.cpp \
-    ../Module.cpp
 
 HEADERS += \
-    ../JarvisClient.h \
     TerminalPrinter.h \
     InputWorker.h \
-    ../Scope.h \
-    ../ModulePackage.h \
-    ../Module.h

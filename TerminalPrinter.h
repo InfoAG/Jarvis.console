@@ -2,8 +2,8 @@
 #define TERMINALPRINTER_H
 
 #include <QObject>
-#include "../JarvisClient.h"
-#include "../ModulePackage.h"
+#include "JarvisClient.h"
+#include "ModulePackage.h"
 #include <QTextStream>
 
 class TerminalPrinter : public QObject

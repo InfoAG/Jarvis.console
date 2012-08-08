@@ -2,6 +2,7 @@
 #include <QThread>
 #include "TerminalPrinter.h"
 #include "InputWorker.h"
+#include "JarvisClient.h"
 
 int main(int argc, char *argv[])
 {

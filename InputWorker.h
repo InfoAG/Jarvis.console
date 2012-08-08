@@ -1,7 +1,7 @@
 #ifndef INPUTWORKER_H
 #define INPUTWORKER_H
 
-#include "../JarvisClient.h"
+#include "JarvisClient.h"
 #include "TerminalPrinter.h"
 
 class Worker : public QObject
