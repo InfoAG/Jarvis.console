@@ -26,7 +26,7 @@ signals:
 public slots:
     void newScope(const QString &name);
     void newFunction(const QString &scope, const QString &def);
-    void newVariable(const QString &scope, const QString &def);
+    void newVariable(const QString &scope, const QString &identifier, const QString &definition);
     void newClient(const QString &scope, const QString &name);
     void clientLeft(const QString &scope, const QString &name);
     void msgInScope(const QString &scope, const QString &sender, const QString &msg);
@@ -34,7 +34,7 @@ public slots:
     void pkgLoaded(const ModulePackage &pkg);
     void pkgUnloaded(const QString &name);
     void enteredScope(const QString &name, const Scope &info);
-    void receivedInitInfo(const QList<QString> &scopes, const QList<ModulePackage> &pkgs);
+    void receivedInitInfo(const QVariant &scopes, const QVariant &pkgs);
     void openScope(const QString &name) { currentScope = name; qtout << "\n(" << currentScope << ")->"; qtout.flush(); }
     void printClients();
     void printModules();

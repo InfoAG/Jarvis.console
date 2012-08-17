@@ -14,7 +14,7 @@ CONFIG   -= app_bundle
 
 TEMPLATE = app
 INCLUDEPATH += ../Frontend
-LIBS += -L../Frontend/debug/ -lJarvis-Frontend
+LIBS += -L$$PWD/../Frontend/debug/ -lJarvis-Frontend
 
 SOURCES += main.cpp \
     TerminalPrinter.cpp \
