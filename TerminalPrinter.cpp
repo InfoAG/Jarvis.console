@@ -10,9 +10,9 @@ TerminalPrinter::TerminalPrinter(JarvisClient &client) : client(client), qtout(s
     connect(&client, SIGNAL(newClient(const QString &, const QString &)), SLOT(newClient(const QString &, const QString &)));
     connect(&client, SIGNAL(clientLeft(const QString &, const QString &)), SLOT(clientLeft(const QString &, const QString &)));
     connect(&client, SIGNAL(error(JarvisClient::ClientError)), SLOT(error(JarvisClient::ClientError)));
-    connect(&client, SIGNAL(pkgLoaded(const ModulePackage &)), SLOT(pkgLoaded(const ModulePackage &)));
+    connect(&client, SIGNAL(pkgLoaded(const QVariant &)), SLOT(pkgLoaded(const QVariant &)));
     connect(&client, SIGNAL(pkgUnloaded(const QString &)), SLOT(pkgUnloaded(const QString &)));
-    connect(&client, SIGNAL(enteredScope(const QString &, const Scope &)), SLOT(enteredScope(const QString &, const Scope &)));
+    connect(&client, SIGNAL(enteredScope(const QString &, const QVariant &)), SLOT(enteredScope(const QString &, const QVariant &)));
     connect(&client, SIGNAL(receivedInitInfo(const QVariant &, const QVariant &)), SLOT(receivedInitInfo(const QVariant &, const QVariant &)));
     connect(&client, SIGNAL(disconnected()), SLOT(disconnected()));
 }
@@ -69,13 +69,13 @@ void TerminalPrinter::error(JarvisClient::ClientError error)
     qtout.flush();
 }
 
-void TerminalPrinter::pkgLoaded(const ModulePackage &pkg)
+void TerminalPrinter::pkgLoaded(const QVariant &pkg)
 {
     qtout << "\nPackage loaded:\n";
-    printPackage(pkg);
+    printPackage(pkg.value<ModulePackage>());
     qtout << "(" << currentScope << ")->";
     qtout.flush();
-    pkgs.append(pkg);
+    pkgs.append(pkg.value<ModulePackage>());
 }
 
 void TerminalPrinter::pkgUnloaded(const QString &name)
@@ -86,17 +86,17 @@ void TerminalPrinter::pkgUnloaded(const QString &name)
     pkgs.erase(std::remove_if(pkgs.begin(), pkgs.end(), [&](const ModulePackage &pkg) { return pkg.name == name; }));
 }
 
-void TerminalPrinter::enteredScope(const QString &name, const Scope &info)
+void TerminalPrinter::enteredScope(const QString &name, const QVariant &info)
 {
     qtout << "\nEntered scope " << name << "; Clients:\n";
-    for (const auto &client : info.clients) qtout << client << "\t";
+    for (const auto &client : info.value<Scope>().clients) qtout << client << "\t";
     qtout << "\nVariables:\n";
-    for (QMap<QString, QString>::ConstIterator it = info.variables.begin(); it != info.variables.end(); ++it) qtout << it.key() << "=" << it.value() << "\t";
+    for (QMap<QString, QString>::ConstIterator it = info.value<Scope>().variables.begin(); it != info.value<Scope>().variables.end(); ++it) qtout << it.key() << "=" << it.value() << "\t";
     qtout << "\nFunctions:\n";
-    for (QMap<QString, QString>::ConstIterator it = info.functions.begin(); it != info.functions.end(); ++it) qtout << it.key() << "=" << it.value() << "\t";
+    for (QMap<QString, QString>::ConstIterator it = info.value<Scope>().functions.begin(); it != info.value<Scope>().functions.end(); ++it) qtout << it.key() << "=" << it.value() << "\t";
     qtout << "\n(" << currentScope << ")->";
     qtout.flush();
-    scopeByName.insert(name, info);
+    scopeByName.insert(name, info.value<Scope>());
 }
 
 void TerminalPrinter::receivedInitInfo(const QVariant &scopes, const QVariant &pkgs)

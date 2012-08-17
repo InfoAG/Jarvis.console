@@ -31,9 +31,9 @@ public slots:
     void clientLeft(const QString &scope, const QString &name);
     void msgInScope(const QString &scope, const QString &sender, const QString &msg);
     void error(JarvisClient::ClientError error);
-    void pkgLoaded(const ModulePackage &pkg);
+    void pkgLoaded(const QVariant &pkg);
     void pkgUnloaded(const QString &name);
-    void enteredScope(const QString &name, const Scope &info);
+    void enteredScope(const QString &name, const QVariant &info);
     void receivedInitInfo(const QVariant &scopes, const QVariant &pkgs);
     void openScope(const QString &name) { currentScope = name; qtout << "\n(" << currentScope << ")->"; qtout.flush(); }
     void printClients();
