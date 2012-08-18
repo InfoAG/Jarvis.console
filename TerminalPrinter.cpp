@@ -3,7 +3,7 @@
 TerminalPrinter::TerminalPrinter(JarvisClient &client) : client(client), qtout(stdout)
 {
     connect(&client, SIGNAL(msgInScope(const QString &, const QString &, const QString &)), SLOT(msgInScope(const QString &, const QString &, const QString &)));
-    connect(&client, SIGNAL(newFunction(const QString &, const QString &)), SLOT(newFunction(const QString &, const QString &)));
+    connect(&client, SIGNAL(newFunction(const QString &, const QString &, const QStringList &, const QString &)), SLOT(newFunction(const QString &, const QString &, const QStringList &, const QString &)));
     connect(&client, SIGNAL(newScope(const QString &)), SLOT(newScope(const QString &)));
     connect(&client, SIGNAL(deletedScope(const QString &)), SLOT(deletedScope(const QString &)));
     connect(&client, SIGNAL(newVariable(const QString &, const QString &, const QString &)), SLOT(newVariable(const QString &, const QString &, const QString &)));
@@ -25,9 +25,11 @@ void TerminalPrinter::newScope(const QString &name)
     scopeByName.insert(name, Scope());
 }
 
-void TerminalPrinter::newFunction(const QString &scope, const QString &def)
+void TerminalPrinter::newFunction(const QString &scope, const QString &identifier, const QStringList &arguments, const QString &def)
 {
-    qtout << "\nNew function definition (scope " << scope << "):\t" << def << "\n";
+    qtout << "\nNew function definition (scope " << scope << "):\t" << identifier << "(" << arguments.front();
+    for (QStringList::const_iterator it = arguments.begin() + 1; it != arguments.end(); ++it) qtout << "," << *it;
+    qtout << ")=" << def << "\n";
     qtout << "(" << currentScope << ")->";
     qtout.flush();
 }

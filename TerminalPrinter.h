@@ -25,7 +25,7 @@ signals:
     
 public slots:
     void newScope(const QString &name);
-    void newFunction(const QString &scope, const QString &def);
+    void newFunction(const QString &scope, const QString &identifier, const QStringList &arguments, const QString &def);
     void newVariable(const QString &scope, const QString &identifier, const QString &definition);
     void newClient(const QString &scope, const QString &name);
     void clientLeft(const QString &scope, const QString &name);
