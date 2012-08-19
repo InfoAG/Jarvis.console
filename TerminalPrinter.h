@@ -38,6 +38,7 @@ public slots:
     void openScope(const QString &name) { currentScope = name; qtout << "\n(" << currentScope << ")->"; qtout.flush(); }
     void printClients();
     void printModules();
+    void leaveScope(const QString &name);
     void printScopes();
     void msgToScope(const QString &msg) { QMetaObject::invokeMethod(&client, "msgToScope", Q_ARG(QString, currentScope), Q_ARG(QString, msg)); }
     void deletedScope(const QString &name);

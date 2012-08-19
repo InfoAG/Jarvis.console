@@ -90,12 +90,13 @@ void TerminalPrinter::pkgUnloaded(const QString &name)
 
 void TerminalPrinter::enteredScope(const QString &name, const QVariant &info)
 {
+    Scope infoScope = info.value<Scope>();
     qtout << "\nEntered scope " << name << "; Clients:\n";
-    for (const auto &client : info.value<Scope>().clients) qtout << client << "\t";
+    for (const auto &client : infoScope.clients) qtout << client << "\t";
     qtout << "\nVariables:\n";
-    for (QMap<QString, QString>::ConstIterator it = info.value<Scope>().variables.begin(); it != info.value<Scope>().variables.end(); ++it) qtout << it.key() << "=" << it.value() << "\t";
+    for (QMap<QString, QString>::ConstIterator it = infoScope.variables.begin(); it != infoScope.variables.end(); ++it) qtout << it.key() << "=" << it.value() << "\t";
     qtout << "\nFunctions:\n";
-    for (QMap<QString, QString>::ConstIterator it = info.value<Scope>().functions.begin(); it != info.value<Scope>().functions.end(); ++it) qtout << it.key() << "=" << it.value() << "\t";
+    for (QMap<QString, QPair<QStringList, QString>>::ConstIterator it = infoScope.functions.begin(); it != infoScope.functions.end(); ++it) qtout << it.key() << it.value().first[0] << "=" << it.value().second << "\t";
     qtout << "\n(" << currentScope << ")->";
     qtout.flush();
     scopeByName.insert(name, info.value<Scope>());
@@ -145,6 +146,12 @@ void TerminalPrinter::printModules()
     for (const auto &pkg : pkgs) printPackage(pkg);
     qtout << "\n(" << currentScope << ")->";
     qtout.flush();
+}
+
+void TerminalPrinter::leaveScope(const QString &name)
+{
+    scopeByName.remove(name);
+    client.leaveScope(name);
 }
 
 void TerminalPrinter::printPackage(const ModulePackage &pkg)

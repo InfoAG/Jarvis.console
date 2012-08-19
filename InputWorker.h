@@ -22,7 +22,7 @@ public slots:
         for (;;) {
             input = qtin.readLine();
             if (input.startsWith("/enter ")) QMetaObject::invokeMethod(&client, "enterScope", Q_ARG(QString, input.right(input.length() - 7)));
-            else if (input.startsWith("/leave ")) QMetaObject::invokeMethod(&client, "leaveScope", Q_ARG(QString, input.right(input.length() - 7)));
+            else if (input.startsWith("/leave ")) QMetaObject::invokeMethod(&printer, "leaveScope", Q_ARG(QString, input.right(input.length() - 7)));
             else if (input.startsWith("/open ")) QMetaObject::invokeMethod(&printer, "openScope", Q_ARG(QString, input.right(input.length() - 6)));
             else if (input == "/modules") QMetaObject::invokeMethod(&printer, "printModules");
             else if (input.startsWith("/unload ")) QMetaObject::invokeMethod(&client, "unloadPkg", Q_ARG(QString, input.right(input.length() - 8)));

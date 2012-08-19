@@ -14,11 +14,11 @@ CONFIG   -= app_bundle
 
 TEMPLATE = app
 INCLUDEPATH += ../Frontend
-LIBS += -L$$PWD/../Frontend/debug/ -lJarvis-Frontend
+LIBS += -L../Frontend/debug/ -lJarvis-Frontend
 
 SOURCES += main.cpp \
-    TerminalPrinter.cpp \
+    TerminalPrinter.cpp
 
 HEADERS += \
     TerminalPrinter.h \
-    InputWorker.h \
+    InputWorker.h
