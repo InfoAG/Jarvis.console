@@ -22,7 +22,7 @@ void TerminalPrinter::newScope(const QString &name)
     qtout << "\nNew Scope:\t" << name << "\n";
     qtout << "(" << currentScope << ")->";
     qtout.flush();
-    scopeByName.insert(name, Scope());
+    serverScopes.append(name);
 }
 
 void TerminalPrinter::newFunction(const QString &scope, const QString &identifier, const QStringList &arguments, const QString &def)
@@ -32,6 +32,7 @@ void TerminalPrinter::newFunction(const QString &scope, const QString &identifie
     qtout << ")=" << def << "\n";
     qtout << "(" << currentScope << ")->";
     qtout.flush();
+    scopeByName[scope].functions.insert(identifier, qMakePair(arguments, def));
 }
 
 void TerminalPrinter::newVariable(const QString &scope, const QString &identifier, const QString &definition)
@@ -39,6 +40,7 @@ void TerminalPrinter::newVariable(const QString &scope, const QString &identifie
     qtout << "\nNew variable definition (scope " << scope << "):\t" << identifier << "=" << definition << "\n";
     qtout << "(" << currentScope << ")->";
     qtout.flush();
+    scopeByName[scope].variables.insert(identifier, definition);
 }
 
 void TerminalPrinter::newClient(const QString &scope, const QString &name)
@@ -94,12 +96,12 @@ void TerminalPrinter::enteredScope(const QString &name, const QVariant &info)
     qtout << "\nEntered scope " << name << "; Clients:\n";
     for (const auto &client : infoScope.clients) qtout << client << "\t";
     qtout << "\nVariables:\n";
-    for (QMap<QString, QString>::ConstIterator it = infoScope.variables.begin(); it != infoScope.variables.end(); ++it) qtout << it.key() << "=" << it.value() << "\t";
+    doPrintVars(infoScope);
     qtout << "\nFunctions:\n";
-    for (QMap<QString, QPair<QStringList, QString>>::ConstIterator it = infoScope.functions.begin(); it != infoScope.functions.end(); ++it) qtout << it.key() << it.value().first[0] << "=" << it.value().second << "\t";
+    doPrintFuncs(infoScope);
     qtout << "\n(" << currentScope << ")->";
     qtout.flush();
-    scopeByName.insert(name, info.value<Scope>());
+    scopeByName.insert(name, infoScope);
 }
 
 void TerminalPrinter::receivedInitInfo(const QVariant &scopes, const QVariant &pkgs)
@@ -108,7 +110,7 @@ void TerminalPrinter::receivedInitInfo(const QVariant &scopes, const QVariant &p
     qtout << "Scopes:\n";
     for (const auto &scope : scopes.value<QStringList>()) {
         qtout << scope << "\t";
-        scopeByName.insert(scope, Scope());
+        serverScopes.append(scope);
     }
     qtout << "Packages:\n";
     for (const auto &pkg : pkgs.value<QList<ModulePackage> >()) {
@@ -121,14 +123,16 @@ void TerminalPrinter::receivedInitInfo(const QVariant &scopes, const QVariant &p
 
 void TerminalPrinter::printClients()
 {
-    for (const auto &client : scopeByName[currentScope].clients) qtout << client << "\t";
-    qtout << "\n(" << currentScope << ")->";
-    qtout.flush();
+    if (! currentScope.isEmpty()) {
+        for (const auto &client : scopeByName[currentScope].clients) qtout << client << "\t";
+        qtout << "\n(" << currentScope << ")->";
+        qtout.flush();
+    }
 }
 
 void TerminalPrinter::printScopes()
 {
-    for (const auto &scope : scopeByName.keys()) qtout << scope << "\t";
+    for (const auto &scope : serverScopes) qtout << scope << "\t";
     qtout << "\n(" << currentScope << ")->";
     qtout.flush();
 }
@@ -139,6 +143,8 @@ void TerminalPrinter::deletedScope(const QString &name)
     qtout << "(" << currentScope << ")->";
     qtout.flush();
     scopeByName.remove(name);
+    serverScopes.removeOne(name);
+    if (currentScope == name) currentScope.clear();
 }
 
 void TerminalPrinter::printModules()
@@ -150,8 +156,14 @@ void TerminalPrinter::printModules()
 
 void TerminalPrinter::leaveScope(const QString &name)
 {
-    scopeByName.remove(name);
-    client.leaveScope(name);
+    if (scopeByName.contains(name)) {
+        scopeByName.remove(name);
+        if (currentScope == name) currentScope.clear();
+        client.leaveScope(name);
+        qtout << "Left scope " + name;
+    } else qtout << "I'm not in a scope called " + name;
+    qtout << "\n(" << currentScope << ")->";
+    qtout.flush();
 }
 
 void TerminalPrinter::printPackage(const ModulePackage &pkg)
@@ -170,5 +182,29 @@ void TerminalPrinter::printPackage(const ModulePackage &pkg)
     for (const auto &mod : pkg.functions) {
         qtout << "\t\t" << mod.name << "\t" << mod.description << "\n";
     }
+    qtout.flush();
+}
+
+void TerminalPrinter::doPrintVars(const Scope &scope)
+{
+    for (auto it = scope.variables.begin(); it != scope.variables.end(); ++it) qtout << it.key() << "=" << it.value() << "\n";
+    qtout.flush();
+}
+
+void TerminalPrinter::doPrintFuncs(const Scope &scope)
+{
+    for (auto it = scope.functions.begin(); it != scope.functions.end(); ++it) {
+        qtout << it.key() << "(" << it.value().first.front();
+        for (auto it_args = it.value().first.begin() + 1; it_args != it.value().first.end(); ++it_args) qtout << "," << *it_args;
+        qtout << ")=" << it.value().second << "\n";
+    }
+    qtout.flush();
+}
+
+void TerminalPrinter::openScope(const QString &name)
+{
+    if (scopeByName.contains(name)) currentScope = name;
+    else qtout << "Enter the scope before opening it.";
+    qtout << "\n(" << currentScope << ")->";
     qtout.flush();
 }

@@ -14,9 +14,13 @@ private:
     JarvisClient &client;
     QTextStream qtout;
     QString currentScope;
+    QStringList serverScopes;
     QMap<QString, Scope>  scopeByName;
     QList<ModulePackage> pkgs;
     void printPackage(const ModulePackage &pkg);
+
+    void doPrintVars(const Scope &scope);
+    void doPrintFuncs(const Scope &scope);
 
 public:
     explicit TerminalPrinter(JarvisClient &client);
@@ -35,12 +39,14 @@ public slots:
     void pkgUnloaded(const QString &name);
     void enteredScope(const QString &name, const QVariant &info);
     void receivedInitInfo(const QVariant &scopes, const QVariant &pkgs);
-    void openScope(const QString &name) { currentScope = name; qtout << "\n(" << currentScope << ")->"; qtout.flush(); }
+    void openScope(const QString &name);
     void printClients();
     void printModules();
     void leaveScope(const QString &name);
     void printScopes();
-    void msgToScope(const QString &msg) { QMetaObject::invokeMethod(&client, "msgToScope", Q_ARG(QString, currentScope), Q_ARG(QString, msg)); }
+    void printVariables() { if (! currentScope.isEmpty()) doPrintVars(scopeByName[currentScope]); }
+    void printFunctions() { if (! currentScope.isEmpty()) doPrintFuncs(scopeByName[currentScope]); }
+    void msgToScope(const QString &msg) { if (! currentScope.isEmpty()) QMetaObject::invokeMethod(&client, "msgToScope", Q_ARG(QString, currentScope), Q_ARG(QString, msg)); }
     void deletedScope(const QString &name);
     void disconnected() { qtout << "\nDisconnected!\n"; qtout.flush(); }
     

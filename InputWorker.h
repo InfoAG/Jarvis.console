@@ -30,6 +30,8 @@ public slots:
             else if (input.startsWith("/delete ")) QMetaObject::invokeMethod(&client, "deleteScope", Q_ARG(QString, input.right(input.length() - 8)));
             else if (input == "/clients") QMetaObject::invokeMethod(&printer, "printClients");
             else if (input == "/scopes") QMetaObject::invokeMethod(&printer, "printScopes");
+            else if (input == "/variables") QMetaObject::invokeMethod(&printer, "printVariables");
+            else if (input == "/functions") QMetaObject::invokeMethod(&printer, "printFunctions");
             else QMetaObject::invokeMethod(&printer, "msgToScope", Q_ARG(QString, input));
         }
     }
