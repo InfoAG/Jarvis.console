@@ -112,7 +112,7 @@ void TerminalPrinter::receivedInitInfo(const QVariant &scopes, const QVariant &p
         qtout << scope << "\t";
         serverScopes.append(scope);
     }
-    qtout << "Packages:\n";
+    qtout << "\nPackages:\n";
     for (const auto &pkg : pkgs.value<QList<ModulePackage> >()) {
         printPackage(pkg);
     }
@@ -140,11 +140,11 @@ void TerminalPrinter::printScopes()
 void TerminalPrinter::deletedScope(const QString &name)
 {
     qtout << "Deleted scope " << name << "\n";
-    qtout << "(" << currentScope << ")->";
     qtout.flush();
     scopeByName.remove(name);
     serverScopes.removeOne(name);
     if (currentScope == name) currentScope.clear();
+    qtout << "(" << currentScope << ")->";
 }
 
 void TerminalPrinter::printModules()
@@ -177,10 +177,38 @@ void TerminalPrinter::printPackage(const ModulePackage &pkg)
     qtout << "\tOperators:\n";
     for (const auto &mod : pkg.operators) {
         qtout << "\t\t" << mod.name << "\t" << mod.description << "\n";
+        qtout << "\t\t\tmatches:\t";
+        if (mod.matches == nullptr)
+            qtout << "<dynamic>";
+        else
+            qtout << *mod.matches;
+        qtout << "\n\t\t\tpriority:\t";
+        if (mod.priority.first)
+            qtout << QString::number(mod.priority.second);
+        else
+            qtout << "<dynamic>";
+        qtout << "\n\t\t\tassociativity:\t";
+        if (mod.associativity.first) {
+            if (mod.associativity.second == OperatorModule::LEFT)
+                qtout << "left";
+            else qtout << "right";
+        } else qtout << "<dynamic>";
+        qtout << "\n";
     }
     qtout << "\tFunctions:\n";
     for (const auto &mod : pkg.functions) {
         qtout << "\t\t" << mod.name << "\t" << mod.description << "\n";
+        qtout << "\t\t\tmatches:\t";
+        if (mod.matches == nullptr)
+            qtout << "<dynamic>";
+        else
+            qtout << mod.matches->first << "\t" << mod.matches->second;
+        qtout << "\n\t\t\tpriority:\t";
+        if (mod.priority.first)
+            qtout << mod.priority.second;
+        else
+            qtout << "<dynamic>";
+        qtout << "\n";
     }
     qtout.flush();
 }
@@ -188,7 +216,6 @@ void TerminalPrinter::printPackage(const ModulePackage &pkg)
 void TerminalPrinter::doPrintVars(const Scope &scope)
 {
     for (auto it = scope.variables.begin(); it != scope.variables.end(); ++it) qtout << it.key() << "=" << it.value() << "\n";
-    qtout.flush();
 }
 
 void TerminalPrinter::doPrintFuncs(const Scope &scope)
@@ -198,7 +225,6 @@ void TerminalPrinter::doPrintFuncs(const Scope &scope)
         for (auto it_args = it.value().first.begin() + 1; it_args != it.value().first.end(); ++it_args) qtout << "," << *it_args;
         qtout << ")=" << it.value().second << "\n";
     }
-    qtout.flush();
 }
 
 void TerminalPrinter::openScope(const QString &name)

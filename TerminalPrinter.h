@@ -44,8 +44,8 @@ public slots:
     void printModules();
     void leaveScope(const QString &name);
     void printScopes();
-    void printVariables() { if (! currentScope.isEmpty()) doPrintVars(scopeByName[currentScope]); }
-    void printFunctions() { if (! currentScope.isEmpty()) doPrintFuncs(scopeByName[currentScope]); }
+    void printVariables() { if (! currentScope.isEmpty()) doPrintVars(scopeByName[currentScope]); qtout << "(" << currentScope << ")->"; qtout.flush(); }
+    void printFunctions() { if (! currentScope.isEmpty()) doPrintFuncs(scopeByName[currentScope]); qtout << "(" << currentScope << ")->"; qtout.flush(); }
     void msgToScope(const QString &msg) { if (! currentScope.isEmpty()) QMetaObject::invokeMethod(&client, "msgToScope", Q_ARG(QString, currentScope), Q_ARG(QString, msg)); }
     void deletedScope(const QString &name);
     void disconnected() { qtout << "\nDisconnected!\n"; qtout.flush(); }
