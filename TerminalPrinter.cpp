@@ -10,10 +10,10 @@ TerminalPrinter::TerminalPrinter(JarvisClient &client) : client(client), qtout(s
     connect(&client, SIGNAL(newClient(const QString &, const QString &)), SLOT(newClient(const QString &, const QString &)));
     connect(&client, SIGNAL(clientLeft(const QString &, const QString &)), SLOT(clientLeft(const QString &, const QString &)));
     connect(&client, SIGNAL(error(JarvisClient::ClientError)), SLOT(error(JarvisClient::ClientError)));
-    connect(&client, SIGNAL(pkgLoaded(const QVariant &)), SLOT(pkgLoaded(const QVariant &)));
+    connect(&client, SIGNAL(pkgLoaded(const ModulePackage &)), SLOT(pkgLoaded(const ModulePackage &)));
     connect(&client, SIGNAL(pkgUnloaded(const QString &)), SLOT(pkgUnloaded(const QString &)));
-    connect(&client, SIGNAL(enteredScope(const QString &, const QVariant &)), SLOT(enteredScope(const QString &, const QVariant &)));
-    connect(&client, SIGNAL(receivedInitInfo(const QVariant &, const QVariant &)), SLOT(receivedInitInfo(const QVariant &, const QVariant &)));
+    connect(&client, SIGNAL(enteredScope(const QString &, const Scope &)), SLOT(enteredScope(const QString &, const Scope &)));
+    connect(&client, SIGNAL(receivedInitInfo(const QStringList &, const QList<ModulePackage> &)), SLOT(receivedInitInfo(const QStringList &, const QList<ModulePackage> &)));
     connect(&client, SIGNAL(disconnected()), SLOT(disconnected()));
 }
 
@@ -73,13 +73,13 @@ void TerminalPrinter::error(JarvisClient::ClientError error)
     qtout.flush();
 }
 
-void TerminalPrinter::pkgLoaded(const QVariant &pkg)
+void TerminalPrinter::pkgLoaded(const ModulePackage &pkg)
 {
     qtout << "\nPackage loaded:\n";
-    printPackage(pkg.value<ModulePackage>());
+    printPackage(pkg);
     qtout << "(" << currentScope << ")->";
     qtout.flush();
-    pkgs.append(pkg.value<ModulePackage>());
+    pkgs.append(pkg);
 }
 
 void TerminalPrinter::pkgUnloaded(const QString &name)
@@ -90,33 +90,32 @@ void TerminalPrinter::pkgUnloaded(const QString &name)
     pkgs.erase(std::remove_if(pkgs.begin(), pkgs.end(), [&](const ModulePackage &pkg) { return pkg.name == name; }));
 }
 
-void TerminalPrinter::enteredScope(const QString &name, const QVariant &info)
+void TerminalPrinter::enteredScope(const QString &name, const Scope &info)
 {
-    Scope infoScope = info.value<Scope>();
     qtout << "\nEntered scope " << name << "; Clients:\n";
-    for (const auto &client : infoScope.clients) qtout << client << "\t";
+    for (const auto &client : info.clients) qtout << client << "\t";
     qtout << "\nVariables:\n";
-    doPrintVars(infoScope);
+    doPrintVars(info);
     qtout << "\nFunctions:\n";
-    doPrintFuncs(infoScope);
+    doPrintFuncs(info);
     qtout << "\n(" << currentScope << ")->";
     qtout.flush();
-    scopeByName.insert(name, infoScope);
+    scopeByName.insert(name, info);
 }
 
-void TerminalPrinter::receivedInitInfo(const QVariant &scopes, const QVariant &pkgs)
+void TerminalPrinter::receivedInitInfo(const QStringList &scopes, const QList<ModulePackage> &pkgs)
 {
     qtout << "InitInfo:\n\n";
     qtout << "Scopes:\n";
-    for (const auto &scope : scopes.value<QStringList>()) {
+    for (const auto &scope : scopes) {
         qtout << scope << "\t";
         serverScopes.append(scope);
     }
     qtout << "\nPackages:\n";
-    for (const auto &pkg : pkgs.value<QList<ModulePackage> >()) {
+    for (const auto &pkg : pkgs) {
         printPackage(pkg);
     }
-    this->pkgs = pkgs.value<QList<ModulePackage> >();
+    this->pkgs = pkgs;
     qtout << "(" << currentScope << ")->";
     qtout.flush();
 }
