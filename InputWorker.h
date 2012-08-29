@@ -4,7 +4,7 @@
 #include "JarvisClient.h"
 #include "TerminalPrinter.h"
 
-class Worker : public QObject
+class InputWorker : public QObject
 {
     Q_OBJECT
 
@@ -13,7 +13,7 @@ private:
     TerminalPrinter &printer;
 
 public:
-    Worker(JarvisClient &client, TerminalPrinter &printer) : client(client), printer(printer) {};
+    InputWorker(JarvisClient &client, TerminalPrinter &printer) : client(client), printer(printer) {};
 
 public slots:
     void doWork() {
