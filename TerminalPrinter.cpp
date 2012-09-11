@@ -192,6 +192,7 @@ void TerminalPrinter::printPackage(const ModulePackage &pkg)
                 qtout << "left";
             else qtout << "right";
         } else qtout << "<dynamic>";
+        qtout << "\n\t\t\tneedsParseForMatch:\t" << ((mod.needsParseForMatch) ? "true" : "false");
         qtout << "\n";
     }
     qtout << "\tFunctions:\n";
