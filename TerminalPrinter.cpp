@@ -202,7 +202,7 @@ void TerminalPrinter::printPackage(const ModulePackage &pkg)
         if (mod.matches == nullptr)
             qtout << "<dynamic>";
         else
-            qtout << mod.matches->first << "\t" << mod.matches->second;
+            qtout << mod.matches->first << "\t" << QString::number(mod.matches->second);
         qtout << "\n\t\t\tpriority:\t";
         if (mod.priority.first)
             qtout << mod.priority.second;
