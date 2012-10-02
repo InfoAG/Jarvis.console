@@ -21,18 +21,18 @@ public slots:
         QString input;
         for (;;) {
             input = qtin.readLine();
-            if (input.startsWith("/enter ")) QMetaObject::invokeMethod(&client, "enterScope", Q_ARG(QString, input.right(input.length() - 7)));
-            else if (input.startsWith("/leave ")) QMetaObject::invokeMethod(&printer, "leaveScope", Q_ARG(QString, input.right(input.length() - 7)));
-            else if (input.startsWith("/open ")) QMetaObject::invokeMethod(&printer, "openScope", Q_ARG(QString, input.right(input.length() - 6)));
+            if (input.startsWith("/enter ")) QMetaObject::invokeMethod(&client, "enterRoom", Q_ARG(QString, input.right(input.length() - 7)));
+            else if (input.startsWith("/leave ")) QMetaObject::invokeMethod(&printer, "leaveRoom", Q_ARG(QString, input.right(input.length() - 7)));
+            else if (input.startsWith("/open ")) QMetaObject::invokeMethod(&printer, "openRoom", Q_ARG(QString, input.right(input.length() - 6)));
             else if (input == "/modules") QMetaObject::invokeMethod(&printer, "printModules");
             else if (input.startsWith("/unload ")) QMetaObject::invokeMethod(&client, "unloadPkg", Q_ARG(QString, input.right(input.length() - 8)));
             else if (input.startsWith("/load ")) QMetaObject::invokeMethod(&client, "loadPkg", Q_ARG(QString, input.right(input.length() - 6)));
-            else if (input.startsWith("/delete ")) QMetaObject::invokeMethod(&client, "deleteScope", Q_ARG(QString, input.right(input.length() - 8)));
+            else if (input.startsWith("/delete ")) QMetaObject::invokeMethod(&client, "deleteRoom", Q_ARG(QString, input.right(input.length() - 8)));
             else if (input == "/clients") QMetaObject::invokeMethod(&printer, "printClients");
-            else if (input == "/scopes") QMetaObject::invokeMethod(&printer, "printScopes");
+            else if (input == "/rooms") QMetaObject::invokeMethod(&printer, "printRooms");
             else if (input == "/variables") QMetaObject::invokeMethod(&printer, "printVariables");
             else if (input == "/functions") QMetaObject::invokeMethod(&printer, "printFunctions");
-            else QMetaObject::invokeMethod(&printer, "msgToScope", Q_ARG(QString, input));
+            else QMetaObject::invokeMethod(&printer, "msgToRoom", Q_ARG(QString, input));
         }
     }
 };

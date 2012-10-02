@@ -13,14 +13,14 @@ class TerminalPrinter : public QObject
 private:
     JarvisClient &client;
     QTextStream qtout;
-    QString currentScope;
-    QStringList serverScopes;
-    QMap<QString, Scope>  scopeByName;
+    QString currentRoom;
+    QStringList serverRooms;
+    QMap<QString, Room>  roomByName;
     QList<ModulePackage> pkgs;
     void printPackage(const ModulePackage &pkg);
 
-    void doPrintVars(const Scope &scope);
-    void doPrintFuncs(const Scope &scope);
+    void doPrintVars(const Room &room);
+    void doPrintFuncs(const Room &room);
 
 public:
     explicit TerminalPrinter(JarvisClient &client);
@@ -28,26 +28,26 @@ public:
 signals:
     
 public slots:
-    void newScope(const QString &name);
-    void newFunction(const QString &scope, const QString &identifier, const QStringList &arguments, const QString &def);
-    void newVariable(const QString &scope, const QString &identifier, const QString &definition);
-    void newClient(const QString &scope, const QString &name);
-    void clientLeft(const QString &scope, const QString &name);
-    void msgInScope(const QString &scope, const QString &sender, const QString &msg);
+    void newRoom(const QString &name);
+    void newFunction(const QString &room, const QString &identifier, const QStringList &arguments, const QString &def);
+    void newVariable(const QString &room, const QString &identifier, const QString &definition);
+    void newClient(const QString &room, const QString &name);
+    void clientLeft(const QString &room, const QString &name);
+    void msgInRoom(const QString &room, const QString &sender, const QString &msg);
     void error(JarvisClient::ClientError error);
     void pkgLoaded(const ModulePackage &pkg);
     void pkgUnloaded(const QString &name);
-    void enteredScope(const QString &name, const Scope &info);
-    void receivedInitInfo(const QStringList &scopes, const QList<ModulePackage> &pkgs);
-    void openScope(const QString &name);
+    void enteredRoom(const QString &name, const Room &info);
+    void receivedInitInfo(const QStringList &rooms, const QList<ModulePackage> &pkgs);
+    void openRoom(const QString &name);
     void printClients();
     void printModules();
-    void leaveScope(const QString &name);
-    void printScopes();
-    void printVariables() { if (! currentScope.isEmpty()) doPrintVars(scopeByName[currentScope]); qtout << "(" << currentScope << ")->"; qtout.flush(); }
-    void printFunctions() { if (! currentScope.isEmpty()) doPrintFuncs(scopeByName[currentScope]); qtout << "(" << currentScope << ")->"; qtout.flush(); }
-    void msgToScope(const QString &msg) { if (! currentScope.isEmpty()) QMetaObject::invokeMethod(&client, "msgToScope", Q_ARG(QString, currentScope), Q_ARG(QString, msg)); }
-    void deletedScope(const QString &name);
+    void leaveRoom(const QString &name);
+    void printRooms();
+    void printVariables() { if (! currentRoom.isEmpty()) doPrintVars(roomByName[currentRoom]); qtout << "(" << currentRoom << ")->"; qtout.flush(); }
+    void printFunctions() { if (! currentRoom.isEmpty()) doPrintFuncs(roomByName[currentRoom]); qtout << "(" << currentRoom << ")->"; qtout.flush(); }
+    void msgToRoom(const QString &msg) { if (! currentRoom.isEmpty()) QMetaObject::invokeMethod(&client, "msgToRoom", Q_ARG(QString, currentRoom), Q_ARG(QString, msg)); }
+    void deletedRoom(const QString &name);
     void disconnected() { qtout << "\nDisconnected!\n"; qtout.flush(); }
     
 };
