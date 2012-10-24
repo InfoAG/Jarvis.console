@@ -173,26 +173,24 @@ void TerminalPrinter::printPackage(const ModulePackage &pkg)
     for (const auto &mod : pkg.terminals) {
         qtout << "\t\t" << mod.name << "\t" << mod.description << "\n";
     }
-    qtout << "\tOperators:\n";
-    for (const auto &mod : pkg.operators) {
-        qtout << "\t\t" << mod.name << "\t" << mod.description << "\n";
-        qtout << "\t\t\tmatches:\t";
-        if (mod.matches == nullptr)
-            qtout << "<dynamic>";
-        else
-            qtout << *mod.matches;
-        qtout << "\n\t\t\tpriority:\t";
-        if (mod.priority.first)
-            qtout << QString::number(mod.priority.second);
-        else
-            qtout << "<dynamic>";
+    qtout << "\tBinary Operators:\n";
+    for (const auto &mod : pkg.binaryOperators) {
+        printOperator(mod);
         qtout << "\n\t\t\tassociativity:\t";
-        if (mod.associativity.first) {
-            if (mod.associativity.second == OperatorModule::LEFT)
-                qtout << "left";
-            else qtout << "right";
-        } else qtout << "<dynamic>";
-        qtout << "\n\t\t\tneedsParseForMatch:\t" << ((mod.needsParseForMatch) ? "true" : "false");
+        if (mod.associativity == BinaryOperatorModule::LEFT)
+            qtout << "left";
+        else if (mod.associativity == BinaryOperatorModule::RIGHT) qtout << "right";
+        else qtout << "<dynamic>";
+        qtout << "\n";
+    }
+    qtout << "\tUnary Operators:\n";
+    for (const auto &mod : pkg.unaryOperators) {
+        printOperator(mod);
+        qtout << "\n\t\t\talignment:\t";
+        if (mod.alignment == UnaryOperatorModule::PRE)
+            qtout << "pre";
+        else if (mod.alignment == UnaryOperatorModule::POST) qtout << "post";
+        else qtout << "<dynamic>";
         qtout << "\n";
     }
     qtout << "\tFunctions:\n";
@@ -211,6 +209,23 @@ void TerminalPrinter::printPackage(const ModulePackage &pkg)
         qtout << "\n";
     }
     qtout.flush();
+}
+
+void TerminalPrinter::printOperator(const OperatorModule &mod)
+{
+    qtout << "\t\t" << mod.name << "\t" << mod.description << "\n";
+    qtout << "\t\t\tmatches:\t";
+    if (mod.matches == nullptr)
+        qtout << "<dynamic>";
+    else
+        qtout << *mod.matches;
+    qtout << "\n\t\t\tpriority:\t";
+    if (mod.priority.first)
+        qtout << QString::number(mod.priority.second);
+    else
+        qtout << "<dynamic>";
+    qtout << "\n\t\t\tneedsParseForMatch:\t" << ((mod.needsParseForMatch) ? "true" : "false");
+    qtout << "\n";
 }
 
 void TerminalPrinter::doPrintVars(const Room &room)

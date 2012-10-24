@@ -18,6 +18,7 @@ private:
     QMap<QString, Room>  roomByName;
     QList<ModulePackage> pkgs;
     void printPackage(const ModulePackage &pkg);
+    void printOperator(const OperatorModule &mod);
 
     void doPrintVars(const Room &room);
     void doPrintFuncs(const Room &room);
