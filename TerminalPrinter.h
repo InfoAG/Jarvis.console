@@ -30,8 +30,9 @@ signals:
     
 public slots:
     void newRoom(const QString &name);
-    void newFunction(const QString &room, const QString &identifier, const QStringList &arguments, const QString &def);
-    void newVariable(const QString &room, const QString &identifier, const QString &definition);
+    void newFunction(const QString &room, const QString &identifier, const QList<QPair<QString, QString>> &arguments, const QString &def);
+    void declaredVariable(const QString &room, const QString &identifier, const QString &type);
+    void definedVariable(const QString &room, const QString &identifier, const QString &definition);
     void newClient(const QString &room, const QString &name);
     void clientLeft(const QString &room, const QString &name);
     void msgInRoom(const QString &room, const QString &sender, const QString &msg);

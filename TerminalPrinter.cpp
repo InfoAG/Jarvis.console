@@ -3,10 +3,11 @@
 TerminalPrinter::TerminalPrinter(JarvisClient &client) : client(client), qtout(stdout)
 {
     connect(&client, SIGNAL(msgInRoom(const QString &, const QString &, const QString &)), SLOT(msgInRoom(const QString &, const QString &, const QString &)));
-    connect(&client, SIGNAL(newFunction(const QString &, const QString &, const QStringList &, const QString &)), SLOT(newFunction(const QString &, const QString &, const QStringList &, const QString &)));
+    connect(&client, SIGNAL(newFunction(const QString &, const QString &, const QList<QPair<QString, QString>> &, const QString &)), SLOT(newFunction(const QString &, const QString &, const QList<QPair<QString, QString>> &, const QString &)));
     connect(&client, SIGNAL(newRoom(const QString &)), SLOT(newRoom(const QString &)));
     connect(&client, SIGNAL(deletedRoom(const QString &)), SLOT(deletedRoom(const QString &)));
-    connect(&client, SIGNAL(newVariable(const QString &, const QString &, const QString &)), SLOT(newVariable(const QString &, const QString &, const QString &)));
+    connect(&client, SIGNAL(declaredVariable(const QString &, const QString &, const QString &)), SLOT(declaredVariable(const QString &, const QString &, const QString &)));
+    connect(&client, SIGNAL(definedVariable(const QString &, const QString &, const QString &)), SLOT(definedVariable(const QString &, const QString &, const QString &)));
     connect(&client, SIGNAL(newClient(const QString &, const QString &)), SLOT(newClient(const QString &, const QString &)));
     connect(&client, SIGNAL(clientLeft(const QString &, const QString &)), SLOT(clientLeft(const QString &, const QString &)));
     connect(&client, SIGNAL(error(JarvisClient::ClientError)), SLOT(error(JarvisClient::ClientError)));
@@ -25,22 +26,36 @@ void TerminalPrinter::newRoom(const QString &name)
     serverRooms.append(name);
 }
 
-void TerminalPrinter::newFunction(const QString &room, const QString &identifier, const QStringList &arguments, const QString &def)
+void TerminalPrinter::newFunction(const QString &room, const QString &identifier, const QList<QPair<QString, QString>> &arguments, const QString &def)
 {
-    qtout << "\nNew function definition (room " << room << "):\t" << identifier << "(" << arguments.front();
-    for (QStringList::const_iterator it = arguments.begin() + 1; it != arguments.end(); ++it) qtout << "," << *it;
+    qtout << "\nNew function definition (room " << room << "):\t" << identifier << "(";
+    QStringList argTypes, argStrings;
+    for (auto itArg = arguments.begin(); itArg != arguments.end(); ++itArg) {
+        argTypes.append(itArg->first);
+        argStrings.append(itArg->second);
+        qtout << itArg->first << " " << itArg->second;
+        if (itArg != arguments.end() - 1) qtout << ", ";
+    }
     qtout << ")=" << def << "\n";
     qtout << "(" << currentRoom << ")->";
     qtout.flush();
-    roomByName[room].functions.insert(identifier, qMakePair(arguments, def));
+    roomByName[room].functions.insert(FunctionSignature{identifier, argTypes}, qMakePair(argStrings, def));
 }
 
-void TerminalPrinter::newVariable(const QString &room, const QString &identifier, const QString &definition)
+void TerminalPrinter::declaredVariable(const QString &room, const QString &identifier, const QString &type)
 {
-    qtout << "\nNew variable definition (room " << room << "):\t" << identifier << "=" << definition << "\n";
+    qtout << "\nNew variable declaration (room " << room << "):\t" << type << " " << identifier << "\n";
     qtout << "(" << currentRoom << ")->";
     qtout.flush();
-    roomByName[room].variables.insert(identifier, definition);
+    roomByName[room].variables.insert(identifier, qMakePair(type, QString()));
+}
+
+void TerminalPrinter::definedVariable(const QString &room, const QString &identifier, const QString &definition)
+{
+    qtout << "\nNew variable definition (room" << room << "):\t" << identifier << "=" << definition << "\n";
+    qtout << "(" << currentRoom << ")->";
+    qtout.flush();
+    roomByName[room].variables[identifier].second = definition;
 }
 
 void TerminalPrinter::newClient(const QString &room, const QString &name)
@@ -230,14 +245,18 @@ void TerminalPrinter::printOperator(const OperatorModule &mod)
 
 void TerminalPrinter::doPrintVars(const Room &room)
 {
-    for (auto it = room.variables.begin(); it != room.variables.end(); ++it) qtout << it.key() << "=" << it.value() << "\n";
+    for (auto it = room.variables.begin(); it != room.variables.end(); ++it) qtout << it.value().first << " " << it.key() << "=" << it.value().second << "\n";
 }
 
 void TerminalPrinter::doPrintFuncs(const Room &room)
 {
     for (auto it = room.functions.begin(); it != room.functions.end(); ++it) {
-        qtout << it.key() << "(" << it.value().first.front();
-        for (auto it_args = it.value().first.begin() + 1; it_args != it.value().first.end(); ++it_args) qtout << "," << *it_args;
+        qtout << it.key().identifier << "(";
+        auto itArgStrs = it.value().first.begin();
+        for (const auto &argType : it.key().argumentTypes) {
+            qtout << argType << " " << *(itArgStrs++);
+            if (itArgStrs != it.value().first.end()) qtout << ", ";
+        }
         qtout << ")=" << it.value().second << "\n";
     }
 }
