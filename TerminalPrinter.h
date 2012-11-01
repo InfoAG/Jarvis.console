@@ -5,6 +5,7 @@
 #include "JarvisClient.h"
 #include "ModulePackage.h"
 #include <QTextStream>
+#include "FunctionDefinition.h"
 
 class TerminalPrinter : public QObject
 {
@@ -30,7 +31,8 @@ signals:
     
 public slots:
     void newRoom(const QString &name);
-    void newFunction(const QString &room, const QString &identifier, const QList<QPair<QString, QString>> &arguments, const QString &def);
+    void declaredFunction(const QString &room, const FunctionSignature &signature, const QString &returnType);
+    void definedFunction(const QString &room, const QString &identifier, const QList<QPair<QString, QString>> &arguments, const QString &definition);
     void declaredVariable(const QString &room, const QString &identifier, const QString &type);
     void definedVariable(const QString &room, const QString &identifier, const QString &definition);
     void newClient(const QString &room, const QString &name);

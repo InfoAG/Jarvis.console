@@ -3,7 +3,8 @@
 TerminalPrinter::TerminalPrinter(JarvisClient &client) : client(client), qtout(stdout)
 {
     connect(&client, SIGNAL(msgInRoom(const QString &, const QString &, const QString &)), SLOT(msgInRoom(const QString &, const QString &, const QString &)));
-    connect(&client, SIGNAL(newFunction(const QString &, const QString &, const QList<QPair<QString, QString>> &, const QString &)), SLOT(newFunction(const QString &, const QString &, const QList<QPair<QString, QString>> &, const QString &)));
+    connect(&client, SIGNAL(declaredFunction(const QString &, const FunctionSignature &, const QString &)), SLOT(declaredFunction(const QString &, const FunctionSignature &, const QString &)));
+    connect(&client, SIGNAL(definedFunction(const QString &, const QString &, const QList<QPair<QString, QString>> &, const QString &)), SLOT(definedFunction(const QString &, const QString &, const QList<QPair<QString, QString>> &, const QString &)));
     connect(&client, SIGNAL(newRoom(const QString &)), SLOT(newRoom(const QString &)));
     connect(&client, SIGNAL(deletedRoom(const QString &)), SLOT(deletedRoom(const QString &)));
     connect(&client, SIGNAL(declaredVariable(const QString &, const QString &, const QString &)), SLOT(declaredVariable(const QString &, const QString &, const QString &)));
@@ -26,20 +27,34 @@ void TerminalPrinter::newRoom(const QString &name)
     serverRooms.append(name);
 }
 
-void TerminalPrinter::newFunction(const QString &room, const QString &identifier, const QList<QPair<QString, QString>> &arguments, const QString &def)
+void TerminalPrinter::declaredFunction(const QString &room, const FunctionSignature &signature, const QString &returnType)
+{
+    qtout << "\nNew function declaration (room " << room << "):\t" << returnType << " " << signature.identifier << "(";
+    if (! signature.argumentTypes.empty()) {
+        for (auto it = signature.argumentTypes.begin(); it != signature.argumentTypes.end() - 1; ++it) qtout << *it << ", ";
+        qtout << signature.argumentTypes.back();
+    }
+    qtout << ")";
+    qtout.flush();
+    roomByName[room].functions.insert(signature, FunctionDefinition(returnType));
+}
+
+void TerminalPrinter::definedFunction(const QString &room, const QString &identifier, const QList<QPair<QString, QString>> &arguments, const QString &definition)
 {
     qtout << "\nNew function definition (room " << room << "):\t" << identifier << "(";
     QStringList argTypes, argStrings;
     for (auto itArg = arguments.begin(); itArg != arguments.end(); ++itArg) {
-        argTypes.append(itArg->first);
-        argStrings.append(itArg->second);
+        argTypes.append(std::move(itArg->first));
+        argStrings.append(std::move(itArg->second));
         qtout << itArg->first << " " << itArg->second;
         if (itArg != arguments.end() - 1) qtout << ", ";
     }
-    qtout << ")=" << def << "\n";
+    qtout << ")=" << definition << "\n";
     qtout << "(" << currentRoom << ")->";
     qtout.flush();
-    roomByName[room].functions.insert(FunctionSignature{identifier, argTypes}, qMakePair(argStrings, def));
+    auto it = roomByName[room].functions.find(FunctionSignature{identifier, argTypes});
+    it->argumentNames = std::move(argStrings);
+    it->definition = std::move(definition);
 }
 
 void TerminalPrinter::declaredVariable(const QString &room, const QString &identifier, const QString &type)
@@ -52,7 +67,7 @@ void TerminalPrinter::declaredVariable(const QString &room, const QString &ident
 
 void TerminalPrinter::definedVariable(const QString &room, const QString &identifier, const QString &definition)
 {
-    qtout << "\nNew variable definition (room" << room << "):\t" << identifier << "=" << definition << "\n";
+    qtout << "\nNew variable definition (room " << room << "):\t" << identifier << "=" << definition << "\n";
     qtout << "(" << currentRoom << ")->";
     qtout.flush();
     roomByName[room].variables[identifier].second = definition;
@@ -251,13 +266,21 @@ void TerminalPrinter::doPrintVars(const Room &room)
 void TerminalPrinter::doPrintFuncs(const Room &room)
 {
     for (auto it = room.functions.begin(); it != room.functions.end(); ++it) {
-        qtout << it.key().identifier << "(";
-        auto itArgStrs = it.value().first.begin();
-        for (const auto &argType : it.key().argumentTypes) {
-            qtout << argType << " " << *(itArgStrs++);
-            if (itArgStrs != it.value().first.end()) qtout << ", ";
+        qtout << it.value().returnType << " " << it.key().identifier << "(";
+        if (it.value().argumentNames.empty()) {
+            if (! it.key().argumentTypes.empty()) {
+                for (auto itArgType = it.key().argumentTypes.begin(); itArgType != it.key().argumentTypes.end() - 1; ++itArgType)
+                    qtout << *itArgType << ", ";
+                qtout << it.key().argumentTypes.back();
+            }
+        } else {
+            auto itArgStrs = it.value().argumentNames.begin();
+            for (const auto &argType : it.key().argumentTypes) {
+                qtout << argType << " " << *(itArgStrs++);
+                if (itArgStrs != it.value().argumentNames.end()) qtout << ", ";
+            }
         }
-        qtout << ")=" << it.value().second << "\n";
+        qtout << ")=" << it.value().definition << "\n";
     }
 }
 
